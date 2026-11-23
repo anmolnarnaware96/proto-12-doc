@@ -47,9 +47,7 @@ const ADDRESS=['ANMIS Clinic','Your street address','City, State, PIN code'];
 const TEL='tel:'+PHONE.replace(/[^+\d]/g,'');
 const P_='https://www.pexels.com/download/video/';
 // Swap any of these for a local file (e.g. 'media/hero.mp4') if the Pexels link ever refuses to play.
-// Streams the 1080p file from Pexels' video CDN (supports seeking/buffering = smooth). Falls back to the download link if none match.
-const cdn=id=>[25,30,24,50,60].map(f=>`https://videos.pexels.com/video-files/${id}/${id}-hd_1920_1080_${f}fps.mp4`).concat(P_+id+'/');
-const MEDIA={hero:cdn(6998175),film:cdn(7579331),fiber:cdn(5892113),atmos:cdn(5406015),object:cdn(7423527)};
+const MEDIA={hero:P_+'6998175/',film:P_+'7579331/',fiber:P_+'5892113/',atmos:P_+'5406015/',object:P_+'7423527/'};
 const useReduced=()=>{const[r,setR]=useState(matchMedia('(prefers-reduced-motion: reduce)').matches);useEffect(()=>{const m=matchMedia('(prefers-reduced-motion: reduce)');const f=()=>setR(m.matches);m.addEventListener('change',f);return()=>m.removeEventListener('change',f)},[]);return r};
 function Reveal({children,x=0,y=0,delay=0,className=''}){const ref=useRef(null);const[v,setV]=useState(false);const red=useReduced();
  useEffect(()=>{const o=new IntersectionObserver(([e])=>{if(e.isIntersecting){setV(true);o.disconnect()}},{rootMargin:'-100px'});o.observe(ref.current);return()=>o.disconnect()},[]);
@@ -57,16 +55,16 @@ function Reveal({children,x=0,y=0,delay=0,className=''}){const ref=useRef(null);
 const Logo=()=><svg width="30" height="30" viewBox="0 0 32 32" fill="none" aria-hidden="true" className="shrink-0"><path d="M6 10.5C9.4 8.4 12.2 9.1 16 13.2C19.8 9.1 22.6 8.4 26 10.5" stroke="#f2f0e9" strokeWidth="1.35" strokeLinecap="round"/><path d="M7.5 18.2C10.6 16.4 13.1 16.8 16 20.4C18.9 16.8 21.4 16.4 24.5 18.2" stroke="rgba(242,240,233,.72)" strokeWidth="1.2" strokeLinecap="round"/><rect x="14.4" y="22.6" width="3.2" height="3.2" rx=".5" fill="#bf8d6f"/></svg>;
 const Ic=({d,s=17})=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={d}/></svg>;
 const IC={arrow:'M5 12h14M13 6l6 6-6 6',x:'M6 6l12 12M18 6L6 18',insta:'M7 3h10a4 4 0 014 4v10a4 4 0 01-4 4H7a4 4 0 01-4-4V7a4 4 0 014-4zM12 8a4 4 0 100 8 4 4 0 000-8zM17.5 6.5h.01',vid:'M3 7h12a2 2 0 012 2v6a2 2 0 01-2 2H3zM17 11l4-3v8l-4-3',mail:'M3 6h18v12H3zM3 7l9 7 9-7'};
-function FilmFrame({src,poster,hero,rate=1}){const red=useReduced();const ref=useRef(null);const list=[].concat(src);const[ix,setIx]=useState(0);const cur=list[ix];const[st,setSt]=useState('loading');const[pf,setPf]=useState(!poster);
+function FilmFrame({src,poster,hero,rate=1}){const red=useReduced();const ref=useRef(null);const[st,setSt]=useState('loading');const[pf,setPf]=useState(!poster);
  useEffect(()=>{const v=ref.current;if(!v)return;if(red){v.pause();return}
   v.loop=true;v.muted=true;v.playsInline=true;v.autoplay=true;v.preload=hero?'auto':'metadata';
   const sr=()=>{v.playbackRate=rate};sr();let vis=!!hero;const play=()=>{if(vis)v.play().catch(()=>{})};const ok=()=>setSt(s=>s==='error'?s:'ready');
-  const a=()=>{sr();ok();play()},b=()=>{sr();ok()},e=()=>{ix<list.length-1?setIx(ix+1):setSt('error')};
+  const a=()=>{sr();ok();play()},b=()=>{sr();ok()},e=()=>setSt('error');
   v.addEventListener('canplay',a);v.addEventListener('loadeddata',a);v.addEventListener('playing',b);v.addEventListener('error',e);let io;if(!hero){io=new IntersectionObserver(([en])=>{vis=en.isIntersecting;vis?play():v.pause()},{threshold:.1});io.observe(v)}else play();
-  return()=>{io&&io.disconnect();v.pause();v.removeEventListener('canplay',a);v.removeEventListener('loadeddata',a);v.removeEventListener('playing',b);v.removeEventListener('error',e)}},[red,cur]);
+  return()=>{io&&io.disconnect();v.pause();v.removeEventListener('canplay',a);v.removeEventListener('loadeddata',a);v.removeEventListener('playing',b);v.removeEventListener('error',e)}},[red,src]);
  return <div className="absolute inset-0 overflow-hidden bg-[#0d0f0e]">
   {!pf&&<img src={poster} alt="" className={hero?'hero-film--still':'film-fill'} onError={()=>setPf(true)}/>}
-  {!red&&st!=='error'&&<video ref={ref} src={cur} muted playsInline loop autoPlay={!!hero} preload={hero?"auto":"metadata"} aria-label={hero?'Hero background film':undefined} className={hero?'hero-film--live':'film-fill'} style={{opacity:1,zIndex:1}}/>}
+  {!red&&st!=='error'&&<video ref={ref} src={src} muted playsInline loop autoPlay={!!hero} preload={hero?"auto":"metadata"} aria-label={hero?'Hero background film':undefined} className={hero?'hero-film--live':'film-fill'} style={{opacity:1,zIndex:1}}/>}
   {hero&&st==='loading'&&!red&&<div role="status" className="absolute inset-0 z-[3] grid place-items-end p-6 eyebrow pointer-events-none">Loading…</div>}
   {st==='error'&&!pf&&<p role="status" className="absolute bottom-3 left-4 z-[3] text-xs muted">Film unavailable — showing still study.</p>}
   {st==='error'&&pf&&<div className="absolute inset-0 z-[3] grid place-items-center text-sm muted">Media unavailable</div>}</div>}
